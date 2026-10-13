@@ -34,17 +34,7 @@ function act(){if(mode=='dialog')return nextD();if(mode!='world')return;const n=
  const won=n.duel&&S.story.events['won_'+n.duel];
  if(n.duel&&!won)say(n.name,n.pre,()=>duel(n.duel));else say(n.name,won?n.post:n.lines)}
 
-function duel(id){const d=D.duelists[id],others=D.decks.filter(x=>x.id!=S.story.events.starterDeck);mode='battle';
- startBattle({n:S.player.name,deck:S.deck},{n:d.name,deck:expand(others[d.slot].cards)},win=>{mode='world';ui.innerHTML='';let m;
-  if(win){const pool=D.cards.filter(c=>c.rarity=='C'),c=pool[Math.random()*pool.length|0];
-   S.player.coins+=d.coins;S.story.events['won_'+id]=1;S.collection[c.id]=(S.collection[c.id]||0)+1;m=`Você venceu! +${d.coins} moedas e a carta ${c.name}.`}
-  else{const l=Math.min(d.loss,S.player.coins);S.player.coins-=l;m=`Você perdeu o duelo. -${l} moedas. Tente de novo!`}
-  Save.write(S);say('',[m])})}
 
-function pause(){mode='pause';const n=Object.values(S.collection).reduce((a,b)=>a+b,0);
- ui.innerHTML=`<div class=menu><h2>Pausa</h2><p>Moedas: ${S.player.coins} · Cartas: ${n}</p><button id=sv>Salvar</button><button id=ex>Exportar save</button><button id=tt>Menu inicial</button><button id=cl>Fechar</button></div>`;
- sv.onclick=()=>{sv.textContent=Save.write(S)?'Salvo!':'Falha ao salvar'};ex.onclick=()=>Save.exportFile(S);
- tt.onclick=()=>{Save.write(S);title()};cl.onclick=()=>{mode='world';ui.innerHTML=''}}
 
 const kk=e=>KM[e.key]||KM[e.key.toLowerCase()];
 addEventListener('keydown',e=>{const k=kk(e);if(k&&mode=='world'){keys[k]=true;e.preventDefault()}
@@ -60,3 +50,23 @@ function loop(t){
  World.draw(cx,t);
  if(World.show&&mode!='battle'){cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(3,3,90,14);cx.fillStyle='#f1dfb0';cx.font='10px Georgia';cx.fillText('Moedas: '+S.player.coins,8,13)}
  requestAnimationFrame(loop)}
+
+function duel(id){const d=D.duelists[id];mode='battle';
+ startBattle({n:S.player.name,deck:S.deck},{n:d.name,deck:Ai.build(d.power)},d.ai,win=>{mode='world';ui.innerHTML='';let m;
+  const h=S.story.history=S.story.history||[];h.unshift({foe:d.name,win,turns:B.n});h.length=Math.min(h.length,10);
+  if(win){const pool=Ai.pool(d.power),c=pool[Math.random()*pool.length|0];S.player.coins+=d.coins;S.story.events['won_'+id]=1;S.collection[c.id]=(S.collection[c.id]||0)+1;m=`Você venceu! +${d.coins} moedas e a carta ${c.name}.`}
+  else{const l=Math.min(d.loss,S.player.coins);S.player.coins-=l;m=`Você perdeu o duelo. -${l} moedas. Tente de novo!`}
+  Save.write(S);say('',[m])})}
+
+function pause(){mode='pause';const n=Object.values(S.collection).reduce((a,b)=>a+b,0),
+ h=(S.story.history||[]).slice(0,3).map(x=>`${x.win?'Vitória':'Derrota'} vs ${x.foe} (${x.turns} turnos)`).join('<br>');
+ ui.innerHTML=`<div class=menu><h2>Pausa</h2><p>Moedas: ${S.player.coins} · Cartas: ${n}</p><p><small>${h}</small></p><button id=sv>Salvar</button><button id=ed2>Editar deck</button><button id=ex>Exportar save</button><button id=tt>Menu inicial</button><button id=cl>Fechar</button></div>`;
+ sv.onclick=()=>{sv.textContent=Save.write(S)?'Salvo!':'Falha ao salvar'};ed2.onclick=editDeck;ex.onclick=()=>Save.exportFile(S);
+ tt.onclick=()=>{Save.write(S);title()};cl.onclick=()=>{mode='world';ui.innerHTML=''}}
+
+function editDeck(){const dc={};S.deck.forEach(i=>dc[i]=(dc[i]||0)+1);const ids=Object.keys(S.collection).sort(),tot=()=>Object.values(dc).reduce((a,b)=>a+b,0);
+ const paint=()=>{const sc=ui.firstChild?ui.firstChild.scrollTop:0;
+  ui.innerHTML=`<div class=menu style="justify-content:flex-start;overflow:auto;padding:1.5cqw"><h2>Deck: ${tot()}/40 (máx. 3 cópias)</h2>${ids.map(i=>{const c=card(i);return `<div class=ed><span>${c.name}${c.type=='monster'?` (${c.attack}/${c.defense})`:''}</span><span><button data-i=${i} data-d=-1>−</button> ${dc[i]||0}/${S.collection[i]} <button data-i=${i} data-d=1>+</button></span></div>`}).join('')}<button id=sd ${tot()==40?'':'disabled'}>Salvar deck</button><button id=cc>Cancelar</button></div>`;
+  ui.firstChild.scrollTop=sc;
+  ui.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const i=b.dataset.i,n=(dc[i]||0)+ +b.dataset.d;if(n>=0&&n<=Math.min(3,S.collection[i]))dc[i]=n;paint()});
+  sd.onclick=()=>{S.deck=expand(dc);Save.write(S);pause()};cc.onclick=pause};paint()}
