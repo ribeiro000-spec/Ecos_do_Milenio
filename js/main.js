@@ -24,7 +24,8 @@ function pickDeck(name,ap){mode='deck';
  ui.querySelectorAll('.dk').forEach(b=>b.onclick=()=>{const d=D.decks.find(x=>x.id==b.dataset.id),s=Save.blank();
   Object.assign(s.player,{name,appearance:ap});s.deck=expand(d.cards);s.collection={...d.cards};s.story.events.starterDeck=d.id;Save.write(s);start(s,true)})}
 
-function start(s,intro){S=s;World.set(s.player);mode='world';ui.innerHTML='';if(intro)say('Mestre Ptahor',D.maps[0].intro)}
+function start(s,intro){S=s;if(!s.story.events.kit){s.story.events.kit=1;[['SP010',2],['DM001',1],['DM024',1],['F004',1]].forEach(([k,n])=>s.collection[k]=(s.collection[k]||0)+n);Save.write(s)}
+ World.set(s.player);mode='world';ui.innerHTML='';if(intro)say('Mestre Ptahor',D.maps[0].intro)}
 
 function say(w,l,done){dlg={w,done,l:l.map(t=>t.replaceAll('{n}',esc(S.player.name)))};mode='dialog';nextD()}
 function nextD(){if(!dlg.l.length){const d=dlg.done;dlg=null;mode='world';ui.innerHTML='';return d&&d()}
@@ -55,7 +56,7 @@ function loop(t){
  requestAnimationFrame(loop)}
 
 function duel(id){const d=D.duelists[id];mode='battle';
- startBattle({n:S.player.name,deck:S.deck},{n:d.name,deck:Ai.build(d.power)},d.ai,win=>{mode='world';ui.innerHTML='';let m;
+ startBattle({n:S.player.name,deck:S.deck,extra:exOf()},{n:d.name,deck:Ai.build(d.power),extra:Ai.extra(d.power)},d.ai,win=>{mode='world';ui.innerHTML='';let m;
   const h=S.story.history=S.story.history||[];h.unshift({foe:d.name,win,turns:B.n});h.length=Math.min(h.length,10);
   if(win){const pool=Ai.pool(d.power),c=pool[Math.random()*pool.length|0];S.player.coins+=d.coins;S.story.events['won_'+id]=1;S.collection[c.id]=(S.collection[c.id]||0)+1;m=`Você venceu! +${d.coins} moedas e a carta ${c.name}.`}
   else{const l=Math.min(d.loss,S.player.coins);S.player.coins-=l;m=`Você perdeu o duelo. -${l} moedas. Tente de novo!`}
@@ -67,9 +68,11 @@ function pause(){mode='pause';const n=Object.values(S.collection).reduce((a,b)=>
  sv.onclick=()=>{sv.textContent=Save.write(S)?'Salvo!':'Falha ao salvar'};ed2.onclick=editDeck;ex.onclick=()=>Save.exportFile(S);
  tt.onclick=()=>{Save.write(S);title()};cl.onclick=()=>{mode='world';ui.innerHTML=''}}
 
-function editDeck(){const dc={};S.deck.forEach(i=>dc[i]=(dc[i]||0)+1);const ids=Object.keys(S.collection).sort(),tot=()=>Object.values(dc).reduce((a,b)=>a+b,0);
+function editDeck(){const dc={};S.deck.forEach(i=>dc[i]=(dc[i]||0)+1);const ids=Object.keys(S.collection).filter(i=>!card(i).fusion).sort(),tot=()=>Object.values(dc).reduce((a,b)=>a+b,0);
  const paint=()=>{const sc=ui.firstChild?ui.firstChild.scrollTop:0;
   ui.innerHTML=`<div class=menu style="justify-content:flex-start;overflow:auto;padding:1.5cqw"><h2>Deck: ${tot()}/40 (máx. 3 cópias)</h2>${ids.map(i=>{const c=card(i);return `<div class=ed><span>${c.name}${c.type=='monster'?` (${c.attack}/${c.defense})`:''}</span><span><button data-i=${i} data-d=-1>−</button> ${dc[i]||0}/${S.collection[i]} <button data-i=${i} data-d=1>+</button></span></div>`}).join('')}<button id=sd ${tot()==40?'':'disabled'}>Salvar deck</button><button id=cc>Cancelar</button></div>`;
   ui.firstChild.scrollTop=sc;
   ui.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const i=b.dataset.i,n=(dc[i]||0)+ +b.dataset.d;if(n>=0&&n<=Math.min(3,S.collection[i]))dc[i]=n;paint()});
   sd.onclick=()=>{S.deck=expand(dc);Save.write(S);pause()};cc.onclick=pause};paint()}
+
+const exOf=()=>Object.entries(S.collection).filter(([k])=>card(k).fusion).flatMap(([k,n])=>Array(Math.min(3,n)).fill(k)).slice(0,15);

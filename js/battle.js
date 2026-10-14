@@ -2,10 +2,10 @@
 let B,bcb,lps,pv,tk=false;
 const opp=w=>w=='p'?'o':'p',need=c=>c.level>=7?2:c.level>=5?1:0,EX=['EX01','EX02','EX03','EX04','EX05'],PH=['Compra','Principal 1','Batalha','Principal 2','Fim'],
 shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a},
-side=(n,d)=>({n,lp:4000,deck:shuffle([...d]),hand:[],f:Array(5).fill(null),st:Array(5).fill(null),gy:[]}),
+side=(n,d,ex)=>({n,lp:4000,ex:ex||[],deck:shuffle([...d]),hand:[],f:Array(5).fill(null),st:Array(5).fill(null),gy:[]}),
 lg=t=>B.log.push(t),kill=(s,i)=>{if(s.f[i]){s.gy.push(s.f[i].id);s.f[i]=null}},
 mon=(c,pos)=>({id:c.id,atk:c.attack,def:c.defense,pos,used:false,moved:false,fresh:true});
-function startBattle(a,f,prof,done){bcb=done;B={p:side(esc(a.n),a.deck),o:side(esc(f.n),f.deck),prof:prof||{},turn:'p',n:0,ph:'m1',sum:false,sel:null,hs:null,tb:null,insp:null,pr:null,log:['O duelo começa!'],over:false,win:false};
+function startBattle(a,f,prof,done){bcb=done;B={p:side(esc(a.n),a.deck,a.extra),o:side(esc(f.n),f.deck,f.extra),prof:prof||{},turn:'p',n:0,ph:'m1',sum:false,sel:null,hs:null,tb:null,insp:null,pr:null,log:['O duelo começa!'],over:false,win:false};
  lps={p:4000,o:4000};pv={p:4000,o:4000};for(let i=0;i<5;i++){draw(B.p);draw(B.o)}beginTurn();if(!tk){tk=true;tick()}}
 function draw(s){if(!s.deck.length){s.lp=0;return}s.hand.push(s.deck.pop())}
 function beginTurn(){B.n++;B.ph='m1';B.sum=false;B.sel=B.hs=B.tb=null;const s=B[B.turn];s.f.forEach(m=>m&&(m.used=m.moved=m.fresh=false));if(B.n>1)draw(s);
@@ -25,19 +25,30 @@ function summon(w,i,def,done,pick){done=done||(()=>{});const me=B[w],c=card(me.h
  ks.forEach(k=>{lg(`${card(me.f[k].id).name} foi sacrificado.`);kill(me,k)});
  const k=me.f.indexOf(null);me.f[k]=mon(c,def?'d':'a');me.hand.splice(i,1);B.sum=true;lg(`${me.n} invocou ${c.name} em ${def?'DEF':'ATK'}.`);
  trap(opp(w),'sum',{w,k},()=>{chk();done(true)})}
-function spell(w,i){const me=B[w],yo=B[opp(w)],c=card(me.hand[i]);if(!c||c.type!='spell'||B.over||B.ph=='bp')return false;const e=c.effect,
- mine=me.f.filter(Boolean).sort((a,b)=>b.atk-a.atk),theirs=yo.f.filter(Boolean).sort((a,b)=>b.atk-a.atk),
- rv=me.gy.map(card).filter(x=>x.type=='monster').sort((a,b)=>b.attack-a.attack)[0];
- if(({boost:!mine.length,destroy:!theirs.length,def:!theirs.length,revive:!rv||!me.f.includes(null),storm:![...me.st,...yo.st].some(Boolean)})[e.t])return false;
- me.hand.splice(i,1);me.gy.push(c.id);
- if(e.t=='heal')me.lp+=e.v;if(e.t=='burn')yo.lp-=e.v;if(e.t=='boost'){mine[0].atk+=e.v;mine[0].def+=e.v}
- if(e.t=='draw')for(let k=0;k<e.v;k++)draw(me);
- if(e.t=='destroy')kill(yo,yo.f.indexOf(theirs[0]));
- if(e.t=='def')theirs[0].pos='d';
- if(e.t=='revive'){me.gy.splice(me.gy.indexOf(rv.id),1);me.f[me.f.indexOf(null)]=mon(rv,'a')}
- if(e.t=='bhole')[me,yo].forEach(s=>s.f.forEach((m,k)=>kill(s,k)));
- if(e.t=='storm')[me,yo].forEach(s=>s.st.forEach((t,k)=>{if(t){s.gy.push(t);s.st[k]=null}}));
- lg(`${me.n} usou ${c.name}.`);chk();return true}
+function fuseMats(me,f){const cand=[...me.hand.map((id,i)=>({s:'h',i,c:card(id)})),...me.f.map((m,i)=>m?{s:'f',i,c:card(m.id)}:null)].filter(x=>x&&x.c.type=='monster'&&!x.c.fusion),used=[];
+ for(const s of [...f.fusion].sort((a,b)=>(a[0]=='~')-(b[0]=='~'))){const x=cand.find(q=>!used.includes(q)&&(s[0]=='~'?q.c.name.includes(s.slice(1)):q.c.id==s));if(!x)return null;used.push(x)}
+ return used}
+const fuseOpts=me=>me.ex.map((id,i)=>({id,m:fuseMats(me,card(id))})).filter(x=>x.m&&(me.f.includes(null)||x.m.some(y=>y.s=='f')));
+// Mágicas com alvo (tg) e janela de corrente: o rival pode anular a ativação (trigger 'spl').
+function spell(w,i,tg,done){done=done||(()=>{});const me=B[w],yo=B[opp(w)],c=card(me.hand[i]);if(!c||c.type!='spell'||B.over||B.ph=='bp')return done(false);const e=c.effect,
+ mine=me.f.filter(Boolean),theirs=yo.f.filter(Boolean),rv=me.gy.map(card).filter(x=>x.type=='monster'&&!x.fusion)[0];
+ if(({boost:!mine.length,destroy:!theirs.length,def:!theirs.length,revive:!rv||!me.f.includes(null),storm:![...me.st,...yo.st].some(Boolean),fuse:!fuseOpts(me).length})[e.t])return done(false);
+ me.hand.splice(i,1);me.gy.push(c.id);lg(`${me.n} ativa ${c.name}.`);
+ trap(opp(w),'spl',{w},neg=>{if(neg){lg(`${c.name} foi anulada!`);chk();return done(true)}
+  const m2=me.f.filter(Boolean).sort((a,b)=>b.atk-a.atk),t2=yo.f.filter(Boolean).sort((a,b)=>b.atk-a.atk),num=typeof tg=='number',
+  ty=num&&yo.f[tg]?yo.f[tg]:t2[0],tm=num&&me.f[tg]?me.f[tg]:m2[0];
+  if(e.t=='heal')me.lp+=e.v;if(e.t=='burn')yo.lp-=e.v;if(e.t=='boost'&&tm){tm.atk+=e.v;tm.def+=e.v}
+  if(e.t=='draw')for(let k=0;k<e.v;k++)draw(me);
+  if(e.t=='destroy'&&ty)kill(yo,yo.f.indexOf(ty));
+  if(e.t=='def'&&ty)ty.pos='d';
+  if(e.t=='revive'){const gy=me.gy.map(card).filter(x=>x.type=='monster'&&!x.fusion),r=gy.find(x=>x.id==tg)||gy.sort((a,b)=>b.attack-a.attack)[0],k=me.f.indexOf(null);if(r&&k>=0){me.gy.splice(me.gy.indexOf(r.id),1);me.f[k]=mon(r,'a')}}
+  if(e.t=='fuse'){const fo=fuseOpts(me).sort((a,b)=>card(b.id).attack-card(a.id).attack),o=fo.find(x=>x.id==tg)||fo[0];
+   if(o){me.ex.splice(me.ex.indexOf(o.id),1);const ms=o.m;ms.filter(x=>x.s=='f').forEach(x=>kill(me,x.i));
+    ms.filter(x=>x.s=='h').map(x=>x.i).sort((a,b)=>b-a).forEach(k=>{me.gy.push(me.hand[k]);me.hand.splice(k,1)});
+    me.f[me.f.indexOf(null)]=mon(card(o.id),'a');lg(`${me.n} invoca por Fusão: ${card(o.id).name}!`)}else lg('A fusão falhou.')}
+  if(e.t=='bhole')[me,yo].forEach(s=>s.f.forEach((m,k)=>kill(s,k)));
+  if(e.t=='storm')[me,yo].forEach(s=>s.st.forEach((t,k)=>{if(t){s.gy.push(t);s.st[k]=null}}));
+  chk();done(true)})}
 function setTrap(w,i){const me=B[w],c=card(me.hand[i]),k=me.st.indexOf(null);if(!c||c.type!='trap'||k<0||B.over||B.ph=='bp')return false;
  me.st[k]=c.id;me.hand.splice(i,1);lg(`${me.n} baixou uma carta.`);return true}
 function flip(w,k){const m=B[w].f[k];if(!m||m.moved||m.used||m.fresh||B.over||B.ph=='bp')return false;
@@ -55,7 +66,7 @@ function trap(d,tr,x,cont){const chain=[];
   if(side=='o')return go();
   B.pr={txt:`${trg=='resp'?'Responder com':'Ativar'} ${card(s.st[ix[0]]).name}?`,opts:[['Ativar',go],['Não',resolve]]};render()};
  offer(d,tr)}
-function fx(d,t,x){const at=B[x.w],df=B[d],m=at.f[x.k];if(!m)return false;
+function fx(d,t,x){if(t=='spn')return true;const at=B[x.w],df=B[d],m=at.f[x.k];if(!m)return false;
  if(t=='cyl'){at.lp-=m.atk;return true}
  if(t=='mir'){at.f.forEach((q,i)=>q&&q.pos=='a'&&kill(at,i));return true}
  if(t=='ring'){kill(at,x.k);at.lp-=m.atk;df.lp-=m.atk;return true}
@@ -78,45 +89,51 @@ function aiStep(){if(B.over||B.turn!='o'||B.pr)return;const a=Ai.next(B);if(!a)r
  if(a.t=='atk'&&B.ph!='bp'){B.ph='bp';lg('O oponente entra na Fase de Batalha.')}
  const nx=ok=>{if(!ok)return endTurn();render();if(!B.over)setTimeout(aiStep,850)};
  if(a.t=='sum')summon('o',a.i,a.def,nx);else if(a.t=='atk')attack('o',a.a,a.tg,nx);
- else nx(a.t=='spell'?spell('o',a.i):a.t=='trap'?setTrap('o',a.i):flip('o',a.k))}
+ else if(a.t=='spell')spell('o',a.i,undefined,nx);else nx(a.t=='trap'?setTrap('o',a.i):flip('o',a.k))}
 // ---------- visual ----------
-const EM=[[/Dragão/,'🐉'],[/Mago|Maga|Bruxa|Aprendiz/,'🧙'],[/Cavaleiro|Guerreiro|Buster|Gearfried|Soldado|Gilford|Pantera|Rocket/,'⚔️'],[/Caveira|Zumbi|Múmia|Exodia|Proibido/,'💀'],[/Serpente|Lagarto/,'🐍'],[/Escorpi/,'🦂'],[/Lobo|Chacal|Uraby/,'🐺'],[/Harpia/,'🦅'],[/Kuriboh/,'👀'],[/Esfinge|Escriba|Guardião|Elfo|Jinzo|Máquina|Kazejin|Suijin|Sanga/,'🗿']],
-art=c=>c.type=='spell'?'✨':c.type=='trap'?'🪤':(EM.find(e=>e[0].test(c.name))||[0,'🏺'])[1];
+const EM=[[/Dragão/,'dragon'],[/Mago|Maga|Bruxa|Aprendiz/,'mage'],[/Cavaleiro|Guerreiro|Buster|Gearfried|Soldado|Gilford|Pantera|Rocket|Gaia|Paladino/,'knight'],[/Caveira|Zumbi|Múmia|Exodia|Proibido/,'skull'],[/Serpente|Lagarto/,'snake'],[/Escorpi/,'scorpion'],[/Lobo|Chacal|Uraby/,'wolf'],[/Harpia/,'bird'],[/Kuriboh/,'eye'],[/Esfinge|Escriba|Guardião|Elfo|Jinzo|Máquina|Kazejin|Suijin|Sanga/,'golem']],
+art=c=>c.fusion?(EM.find(e=>e[0].test(c.name))||[0,'fusion'])[1]:c.type=='spell'?'spell':c.type=='trap'?'trap':(EM.find(e=>e[0].test(c.name))||[0,'urn'])[1];
 function cardEl(c,cls,m){const h=[...c.id].reduce((a,ch)=>a+ch.charCodeAt(0)*7,0)%360,a=m?m.atk:c.attack,d=m?m.def:c.defense;
- return `<div class="cd ${c.type} R${c.rarity} ${c.level>=7?'hi':''} ${cls||''}" data-c="${c.id}"><div class=nm>${c.name}</div><div class=ls>${c.type=='monster'?'★'.repeat(Math.min(c.level,12)):c.type=='spell'?'MÁGICA':'ARMADILHA'}</div><div class=ar style="background:radial-gradient(circle at 50% 35%,hsl(${h} 55% 55%),hsl(${h} 45% 22%))"><span>${art(c)}</span><img src="./assets/cards/${c.id}.jpg" alt="" onerror="this.remove()"></div>${c.type=='monster'?`<div class=ad>${a}/${d}</div>`:''}</div>`}
+ return `<div class="cd ${c.type} R${c.rarity} ${c.fusion?'fus':c.level>=7?'hi':''} ${cls||''}" data-c="${c.id}"><div class=nm>${c.name}</div><div class=ls>${c.type=='monster'?'★'.repeat(Math.min(c.level,12)):c.type=='spell'?'MÁGICA':'ARMADILHA'}</div><div class=ar style="background:radial-gradient(circle at 50% 35%,hsl(${h} 55% 55%),hsl(${h} 45% 22%))"><img class=sp src="./assets/art/${art(c)}.png" style="filter:hue-rotate(${h%50}deg)" alt=""><img src="./assets/cards/${c.id}.jpg" alt="" onerror="this.remove()"></div>${c.type=='monster'?`<div class=ad>${a}/${d}</div>`:''}</div>`}
 const inspHTML=id=>{const c=card(id);return cardEl(c,'big')+`<small>${c.type=='monster'?`Nível ${c.level} · ${need(c)?need(c)+' sacrifício(s)':'sem sacrifício'} · ${c.rarity}`:c.text}</small>`},
-mslots=(s,w)=>s.f.map((m,i)=>{const tg=(w=='o'&&m&&B.sel!=null&&B.ph=='bp')||(w=='p'&&m&&B.tb);
+mslots=(s,w)=>s.f.map((m,i)=>{const g=B.tg&&B.tg.t,tg=(w=='o'&&m&&((B.sel!=null&&B.ph=='bp')||g=='destroy'||g=='def'))||(w=='p'&&m&&(B.tb||g=='boost'));
  return `<div class="sl ${w=='p'&&B.sel===i?'sel':''} ${tg?'hl':''} ${w=='p'&&B.tb&&B.tb.pick.includes(i)?'sel':''}" data-w="${w}" data-i="${i}">${m?cardEl(card(m.id),(m.pos=='d'?'dp ':'')+(m.used?'used':''),m):''}</div>`}).join(''),
 tslots=(s,w)=>s.st.map(t=>`<div class=sl2>${t?(w=='p'?`<div class="cd trap mini" data-c="${t}">${card(t).name}</div>`:'<div class="cd back mini"></div>'):''}</div>`).join('');
-function ctxHTML(){const p=B.p;if(B.tb)return `<small>Escolha ${B.tb.n} sacrifício(s) entre seus monstros (${B.tb.pick.length}/${B.tb.n})</small><button id=cn>Cancelar</button>`;
+const zrow=(s,w)=>`<div class="zn" data-z="ex${w}">EXTRA<br>${s.ex.length}</div>${tslots(s,w)}<div class="zn" data-z="gy${w}">CEM.<br>${s.gy.length}</div>`;
+function ctxHTML(){const p=B.p;if(B.tg)return '<small>Escolha o alvo da mágica</small><button id=cn>Cancelar</button>';if(B.tb)return `<small>Escolha ${B.tb.n} sacrifício(s) entre seus monstros (${B.tb.pick.length}/${B.tb.n})</small><button id=cn>Cancelar</button>`;
  if(B.hs!=null&&p.hand[B.hs]){const c=card(p.hand[B.hs]);return c.type=='monster'?'<button id=a1>Invocar em ATK</button><button id=a2>Baixar em DEF</button>':c.type=='spell'?'<button id=as>Ativar</button>':'<button id=at>Baixar</button>'}
  if(B.sel!=null&&p.f[B.sel])return (B.ph=='bp'?(B.o.f.some(Boolean)?'<small>Clique num monstro rival para atacar</small>':'<button id=ak>Ataque direto</button>'):'')+'<button id=af>Mudar posição</button>';
  return `<small>${B.turn=='p'?'Selecione uma carta da mão ou do campo.':'Turno do oponente…'}</small>`}
 function render(){const p=B.p,o=B.o,cur=B.ph=='m1'?1:B.ph=='bp'?2:3,my=B.turn=='p'&&!B.over,
  pl=(s,w)=>`<div class=pl><b>${s.n}</b><div class=lpb><i id=lb${w}></i><span id=lt${w}>${lps[w]}</span></div><small>Mão ${s.hand.length} · Deck ${s.deck.length} · Cem. ${s.gy.length}</small></div>`;
  ui.innerHTML=`<div class=b2><div class=side>${pl(o,'o')}<div class=insp id=insp>${B.insp?inspHTML(B.insp):'<small>Passe o mouse/toque numa carta para ver detalhes.</small>'}</div><div class=ctx>${ctxHTML()}</div>${pl(p,'p')}</div>
-<div class=field><div class=row>${tslots(o,'o')}</div><div class=row>${mslots(o,'o')}</div>
+<div class=field><div class=board><div class=mat><div class="row far">${zrow(o,'o')}</div><div class="row far">${mslots(o,'o')}</div><div class=row>${mslots(p,'p')}</div><div class=row>${zrow(p,'p')}</div></div></div>
 <div class=mid><div class=chips>${PH.map((n,i)=>`<span class="${i==cur?'on':''}">${n}</span>`).join('')}</div><div class=lgl>${B.log.slice(-2).join(' · ')}</div></div>
-<div class=row>${mslots(p,'p')}</div><div class=row>${tslots(p,'p')}</div>
 <div class=hand>${p.hand.map((id,i)=>`<div class="hc ${B.hs===i?'sel':''}" data-h="${i}">${cardEl(card(id))}</div>`).join('')}</div>
 <div class=acts><button id=nx ${my?'':'disabled'}>${B.ph=='m1'?(B.n>1?'Batalha ▶':'Principal 2 ▶'):B.ph=='bp'?'Principal 2 ▶':'Fim ▶'}</button><button id=en ${my?'':'disabled'}>Encerrar turno</button></div></div>
 ${B.pr?`<div class=menu><p>${B.pr.txt}</p>${B.pr.opts.map((x,i)=>`<button data-pr=${i}>${x[0]}</button>`).join('')}</div>`:''}
 ${B.over?`<div class=menu><h1>${B.win?'VITÓRIA':'DERROTA'}</h1><button id=bk>Continuar</button></div>`:''}</div>`}
-function battleClick(e){const t=e.target.closest('[data-pr],[data-h],[data-w],button');if(!t)return;
+function battleClick(e){const t=e.target.closest('[data-pr],[data-h],[data-w],[data-z],button');if(!t)return;
  if(t.id=='bk')return bcb(B.win);
  if(t.dataset.pr!=null){const f=B.pr.opts[+t.dataset.pr][1];B.pr=null;f();return render()}
  if(B.over||B.turn!='p'||B.pr)return;
- const id=t.id,p=B.p,rs=()=>{B.hs=B.sel=B.tb=null};
+ if(t.dataset.z){const z=t.dataset.z,k=z.slice(0,2),w=z[2],s=B[w],l=k=='gy'?s.gy:(w=='p'?s.ex:[]);B.pr={txt:(k=='gy'?'Cemitério':'Extra Deck')+' de '+s.n+': '+(l.length?l.map(i=>card(i).name).join(', '):(k=='ex'&&w=='o'?s.ex.length+' carta(s) ocultas':'vazio')),opts:[['Fechar',()=>{}]]};return render()}
+ const id=t.id,p=B.p,rs=()=>{B.hs=B.sel=B.tb=B.tg=null};
  if(id=='en')return endTurn();if(id=='nx')return nextPhase();
- if(id=='cn')B.tb=null;
+ if(id=='cn')B.tb=B.tg=null;
  else if(id=='a1'||id=='a2'){const i=B.hs,n=need(card(p.hand[i])),def=id=='a2';
   if(!n)return summon('p',i,def,ok=>{if(!ok)lg('Invocação impossível agora (fase, zona ou já invocou).');rs();render()});
   if(p.f.filter(Boolean).length<n)lg('Sacrifícios insuficientes.');else B.tb={i,def,n,pick:[]}}
- else if(id=='as'){if(!spell('p',B.hs))lg('Não dá para usar agora (fase ou sem alvo).');rs()}
+ else if(id=='as'){const i=B.hs,e=card(p.hand[i]).effect,ar=e.t=='boost'?p.f:B.o.f;
+  if(['destroy','def','boost'].includes(e.t)){if(!ar.some(Boolean)||B.ph=='bp')lg('Sem alvo ou fase errada.');else{B.tg={i,t:e.t};B.hs=null}}
+  else if(e.t=='revive'||e.t=='fuse'){const ops=e.t=='revive'?[...new Set(p.gy.filter(x=>card(x).type=='monster'&&!card(x).fusion))].map(x=>[card(x).name,x]):fuseOpts(p).map(o=>[card(o.id).name,o.id]);
+   if(!ops.length||B.ph=='bp')lg('Sem alvo ou fase errada.');else{rs();B.pr={txt:'Escolha o alvo:',opts:[...ops.slice(0,6).map(o=>[o[0],()=>spell('p',i,o[1],()=>render())]),['Cancelar',()=>{}]]};return render()}}
+  else return spell('p',i,undefined,ok=>{if(!ok)lg('Não dá para usar agora.');rs();render()})}
  else if(id=='at'){if(!setTrap('p',B.hs))lg('Sem zona livre ou fase errada.');rs()}
  else if(id=='ak'){const s=B.sel;rs();return attack('p',s,null,ok=>{if(!ok)lg('Ataque direto impossível.');render()})}
  else if(id=='af'){if(!flip('p',B.sel))lg('Não dá para mudar a posição agora.');B.sel=null}
- else if(t.dataset.h!=null){B.hs=+t.dataset.h;B.sel=null;B.tb=null;B.insp=p.hand[B.hs]}
+ else if(B.tg&&t.dataset.w){const g=B.tg,k=+t.dataset.i,w=t.dataset.w;if((g.t=='boost')==(w=='p')&&B[w].f[k]){B.tg=null;return spell('p',g.i,k,r=>{if(!r)lg('Não deu certo.');render()})}}
+ else if(t.dataset.h!=null){B.hs=+t.dataset.h;B.sel=null;B.tb=null;B.tg=null;B.insp=p.hand[B.hs]}
  else if(t.dataset.w=='p'){const k=+t.dataset.i,m=p.f[k];
   if(B.tb){if(m){const q=B.tb.pick,x=q.indexOf(k);x<0?q.push(k):q.splice(x,1);
    if(q.length==B.tb.n){const b=B.tb;rs();return summon('p',b.i,b.def,ok=>{if(!ok)lg('Invocação impossível.');render()},b.pick)}}}
