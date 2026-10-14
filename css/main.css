@@ -18,11 +18,5 @@ input{font:inherit;padding:.8cqw;border-radius:1cqw;border:.4cqw solid var(--gol
 .dk{width:72cqw}.dk small{opacity:.8}
 .dlg{position:absolute;left:2cqw;right:2cqw;bottom:2cqw;min-height:14cqw;background:var(--pap);border:.5cqw solid var(--gold);border-radius:1.2cqw;padding:1.5cqw 2cqw}
 .dlg b{display:block;color:#8a5a1a}
-#pad{display:none;width:100%;justify-content:space-between;align-items:center;padding:0 5vw;touch-action:none}
-#pad button{font-size:20px;padding:0;min-width:0;border-width:3px}
-#dpad{display:grid;grid-template:repeat(2,52px)/repeat(3,52px);gap:4px}
-[data-k=up]{grid-area:1/2}[data-k=left]{grid-area:2/1}[data-k=down]{grid-area:2/2}[data-k=right]{grid-area:2/3}
-#abtn{width:76px;height:76px;border-radius:50%}
-@media(pointer:coarse){:root{--padh:150px}#pad{display:flex;height:150px}}
 .ed{display:flex;justify-content:space-between;gap:2cqw;width:72cqw;font-size:2.2cqw;text-align:left}
 .ed button{min-width:0;padding:0 1.4cqw}

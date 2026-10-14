@@ -1,0 +1,45 @@
+#game{width:min(100vw,calc(100vh*1.5));width:min(100vw,calc(100dvh*1.5))}
+#fsb{position:absolute;right:1cqw;top:1cqw;z-index:5;min-width:0;padding:0 1.2cqw;font-size:3cqw;background:rgba(241,223,176,.75)}
+body[data-mode=battle] #fsb{display:none}
+#rot{display:none;position:fixed;top:0;left:0;right:0;z-index:20;background:#6b3fb3;color:#ffd84a;text-align:center;padding:6px;font-weight:bold}
+@media(orientation:portrait) and (pointer:coarse){#rot{display:block}}
+#pad{position:fixed;left:0;right:0;bottom:0;height:0;display:none;z-index:9}
+@media(pointer:coarse){#pad{display:block}}
+body:not([data-mode=world]):not([data-mode=dialog]) #pad{display:none!important}
+#joy{position:absolute;left:3vmin;bottom:4vmin;width:calc(30vmin*var(--ps,1));height:calc(30vmin*var(--ps,1));border-radius:50%;background:rgba(255,230,160,.18);border:.7vmin solid rgba(255,230,160,.55);touch-action:none}
+#knob{position:absolute;left:30%;top:30%;width:40%;height:40%;border-radius:50%;background:rgba(255,230,160,.6);pointer-events:none}
+#btns{position:absolute;right:3vmin;bottom:4vmin;width:calc(40vmin*var(--ps,1));height:calc(32vmin*var(--ps,1));pointer-events:none}
+#btns button{position:absolute;pointer-events:auto;min-width:0;border-radius:50%;padding:0;font-size:5vmin;touch-action:none;background:rgba(241,223,176,.72);border-width:.7vmin}
+#abtn{right:0;bottom:0;width:60%;height:75%}#rbtn{left:0;bottom:0;width:36%;height:45%}#mbtn{right:0;top:0;width:32%;height:40%}
+.tt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;color:var(--pap)}
+.ttl{margin:3cqw 0 0;font:900 9cqw/.95 Papyrus,'Copperplate Gothic Bold',Copperplate,'Trebuchet MS',fantasy;text-align:center;transform:rotate(-3deg);letter-spacing:.4cqw;background:linear-gradient(#e8fcff,#3fb4d6 60%,#1c7fa3);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.3cqw #0b4a66;filter:drop-shadow(0 0 1.6cqw #7fe6ff)}
+.sub{font:italic 800 3.2cqw Georgia,serif;color:#ffc83a;text-shadow:0 .3cqw #7a3b00,0 0 1cqw #ff9a1a;margin-top:.8cqw}
+.tm{margin-top:auto;margin-bottom:5.5cqw;display:flex;flex-direction:column;align-items:center}
+.mi{--g:linear-gradient(#fff1a6,#e0a21a 60%,#9a5f00)}.mi.on{--g:linear-gradient(#fff,#b9c3cf 60%,#6c7886)}
+.mi,.mi:hover:not(:disabled){border:0;min-width:0;padding:.1cqw 3cqw;font:900 4.2cqw Papyrus,Copperplate,'Trebuchet MS',fantasy;color:transparent;background:var(--g);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:.2cqw #4a2c00;filter:drop-shadow(0 .3cqw 0 #2a1800);position:relative}
+.mi.on:before{content:"▶";position:absolute;left:0;color:#d9a93c;-webkit-text-fill-color:#d9a93c;-webkit-text-stroke:0}
+.ft{position:absolute;left:0;right:0;bottom:0;background:#6b3fb3;color:#ffd84a;font:bold 1.8cqw Georgia;text-align:center;padding:.3cqw}
+.pap2{margin:auto;width:70cqw;background:linear-gradient(#f3e3b8,#e6cf93);color:var(--ink);border:.8cqw double #b9812a;border-radius:1cqw;padding:2cqw;display:flex;flex-direction:column;gap:1cqw;align-items:center;font-size:2.2cqw;text-align:left}
+.pap2 ul{margin:0;padding-left:3cqw}
+.ce{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;gap:1cqw;padding:1.5cqw;background:#cdb79b;background-image:radial-gradient(circle,#bba482 2.2cqw,transparent 2.4cqw);background-size:9cqw 9cqw;color:#2b1d12}
+.ctop{align-self:stretch;display:flex;gap:1.5cqw;align-items:center;font-weight:bold;font-size:3cqw}.rd{min-width:0;border-radius:50%;padding:.3cqw 1.2cqw;background:#c0392b;color:#fff}
+.cbar,.cgr{background:#e9a763;border:.5cqw solid #3b2a2a;border-radius:1.2cqw;padding:1cqw}
+.cbar{display:flex;gap:1.2cqw;align-items:center;justify-content:center;width:66cqw}.cl{font-size:1.8cqw;font-weight:bold}
+.sw2{width:4.2cqw;height:4.2cqw;border-radius:50%;border:.4cqw solid #2b1d12;cursor:pointer}.sw2.on{outline:.4cqw solid #fff;outline-offset:.3cqw}
+.pv{width:12cqw;height:17.3cqw;image-rendering:pixelated}
+.ctab{display:flex;gap:1cqw}.tb{min-width:0;border-radius:1.4cqw 1.4cqw 0 0;background:#e9a763;border-color:#3b2a2a;padding:.4cqw 2cqw}.tb.on{background:#fff7e0}
+.cgr{display:grid;grid-template-columns:repeat(6,1fr);gap:1cqw;width:78cqw}
+.ho{width:9cqw;height:13cqw;background:#f3c58f;border-radius:1cqw;image-rendering:pixelated;margin:auto;cursor:pointer}.ho.on{outline:.4cqw solid #fff}
+.cft{display:flex;gap:1.5cqw;align-items:center}.cft input{width:26cqw}
+.pw{position:absolute;inset:0;background:rgba(8,36,52,.6)}
+.hdr{position:absolute;left:2cqw;right:2cqw;top:1.2cqw;display:flex;gap:1.5cqw;align-items:center}
+.coin{background:#7a3b1a;color:#ffe8a0;border:.3cqw solid #f5d27a;border-radius:2cqw;padding:.2cqw 1.6cqw;font-weight:bold}.hg{flex:1;text-align:center;color:#f5d27a;letter-spacing:1cqw;font-size:2.6cqw}
+.pbody{position:absolute;left:2cqw;right:14cqw;top:6.5cqw;bottom:2cqw;display:flex;background:linear-gradient(#f3e3b8,#e6cf93);color:var(--ink);border:.8cqw double #b9812a;box-shadow:0 0 0 .4cqw #3a2a14,0 2cqw 4cqw #000;border-radius:.6cqw;overflow:hidden}
+.pmain{flex:1;overflow:auto;display:flex;flex-wrap:wrap;gap:1.2cqw;padding:1.5cqw;align-content:flex-start;font-size:2cqw}
+.pside{width:19cqw;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:1cqw;border-left:.3cqw solid #b9812a;background:rgba(185,129,42,.12)}
+.pins{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;font-size:1.5cqw;text-align:center;gap:.5cqw}
+#pp{width:9cqw;height:13cqw;image-rendering:pixelated}
+.ptabs{position:absolute;right:2cqw;top:6.5cqw;bottom:2cqw;width:10.5cqw;display:flex;flex-direction:column;gap:1cqw;background:#8a4a1f;border:.4cqw solid #3a2a14;border-radius:.8cqw;padding:1cqw}
+.pt{min-width:0;width:100%;font-size:3.4cqw;background:#c98a3a;color:#fff;border-color:#f5d27a;padding:.4cqw 0;line-height:1}.pt small{display:block;font-size:1.3cqw}.pt.on{background:#f5d27a;color:#3a2a14}
+.ct{text-align:center;font-size:1.7cqw}.cw{position:relative;width:11cqw;height:16cqw;margin:0 auto .3cqw}.ct button{min-width:0;padding:0 1.2cqw;font-size:2cqw}
+.dkh{flex-basis:100%;display:flex;gap:2cqw;align-items:center}

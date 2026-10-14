@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Ecos do Milênio</title><link rel="stylesheet" href="./css/main.css"><link rel="stylesheet" href="./css/battle.css"></head>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<title>Ecos do Milênio</title><link rel="stylesheet" href="./css/main.css"><link rel="stylesheet" href="./css/battle.css"><link rel="stylesheet" href="./css/menus.css"></head>
 <body>
-<div id="game"><canvas id="cv" width="480" height="320"></canvas><div id="ui"></div><div id="fx"></div></div>
-<div id="pad"><div id="dpad"><button data-k="up">▲</button><button data-k="left">◀</button><button data-k="down">▼</button><button data-k="right">▶</button></div><button id="abtn">A</button></div>
-<script src="./js/save.js"></script><script src="./js/world.js"></script>
+<div id="rot">↻ Gire o aparelho (modo paisagem) para jogar em tela cheia</div>
+<div id="game"><canvas id="cv" width="288" height="192"></canvas><div id="ui"></div><div id="fx"></div><button id="fsb" title="Tela cheia">⛶</button></div>
+<div id="pad"><div id="joy"><i id="knob"></i></div><div id="btns"><button id="mbtn">☰</button><button id="rbtn">»</button><button id="abtn">A</button></div></div>
+<script src="./js/save.js"></script><script src="./js/look.js"></script><script src="./js/world.js"></script>
 <script src="./js/battle.js"></script><script src="./js/battle-ai.js"></script><script src="./js/main.js"></script>
 </body></html>

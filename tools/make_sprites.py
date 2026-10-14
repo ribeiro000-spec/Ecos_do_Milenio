@@ -41,7 +41,7 @@ def door(d):brick(d);d.rectangle([4,2,11,15],fill=(74,47,27));d.rectangle([5,3,1
 def shore(d):d.rectangle([0,0,15,1],fill=(191,233,228,255))
 def rock(d):grass(d);d.ellipse([3,6,13,14],fill=(130,130,138));d.ellipse([5,7,10,10],fill=(165,165,172))
 for i,f in enumerate([grass,flowers,path,water(0),water(1),palm,brick,roof,win,door,shore,rock]):tile(i,f)
-tiles.save('assets/tiles.png')
+pass
 CH=['#c0392b','#2980b9','#27ae60','#8e44ad','#e8e0c0','#e67e22','#d35400','#2c3e50']
 def char(sh,dr,fr):
     im=Image.new('RGBA',(16,24));d=ImageDraw.Draw(im);sk=(240,200,160);hr=(60,38,22);dk=(43,29,18);b=1 if fr else 0
