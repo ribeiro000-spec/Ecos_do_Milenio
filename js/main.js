@@ -44,10 +44,13 @@ addEventListener('keyup',e=>{const k=kk(e);if(k)keys[k]=false});
 document.querySelectorAll('#dpad button').forEach(b=>{const k=b.dataset.k,on=v=>e=>{e.preventDefault();keys[k]=v};b.onpointerdown=on(true);b.onpointerup=b.onpointerleave=b.onpointercancel=on(false)});
 abtn.onpointerdown=e=>{e.preventDefault();act()};
 ui.addEventListener('click',e=>{if(mode=='battle')battleClick(e)});
+ui.addEventListener('mouseover',e=>{if(mode=='battle')battleHover(e)});
+const pt=Array.from({length:50},()=>({x:Math.random()*480,y:Math.random()*320,v:.3+Math.random()}));
 
 function loop(t){
  if(mode=='world'&&World.update(keys)){Object.assign(S.player,{x:World.p.x,y:World.p.y,dir:World.p.dir});Save.write(S)}
- World.draw(cx,t);
+ World.prompt=mode=='world';World.draw(cx,t);
+ if(['title','create','deck'].includes(mode)){cx.fillStyle='rgba(20,12,6,.35)';cx.fillRect(0,0,480,320);cx.fillStyle='rgba(240,210,140,.8)';pt.forEach(p=>{p.x=(p.x+p.v*2)%480;p.y=(p.y+p.v*.3)%320;cx.fillRect(p.x,p.y,2,1)})}
  if(World.show&&mode!='battle'){cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(3,3,90,14);cx.fillStyle='#f1dfb0';cx.font='10px Georgia';cx.fillText('Moedas: '+S.player.coins,8,13)}
  requestAnimationFrame(loop)}
 
