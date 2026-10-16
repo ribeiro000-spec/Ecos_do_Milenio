@@ -1,6 +1,6 @@
 const T=16,VW=288,VH=192,DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]},
 CH=['#c0392b','#2980b9','#27ae60','#8e44ad','#e8e0c0','#e67e22','#d35400','#2c3e50'],DI={down:0,left:1,right:2,up:3},IM={};
-['tiles','chars'].forEach(n=>{const i=new Image();i.src='./assets/'+n+'.png';IM[n]=i});
+['tiles'].forEach(n=>{const i=new Image();i.src='./assets/'+n+'.png';IM[n]=i});
 const tile=(c,i,X,Y)=>c.drawImage(IM.tiles,i*16,0,16,16,X,Y,16,16),
 shadow=(c,x,y)=>{c.fillStyle='rgba(120,60,40,.3)';c.fillRect(x+3,y+13,10,3)};
 const World={rows:[],npcs:[],lg:{},sol:'',w:30,h:20,show:false,prompt:false,look:LK,cam:{x:0,y:0},p:{x:5,y:8,fx:5,fy:8,dir:'down',t:0},
@@ -22,7 +22,7 @@ draw(c,t){t=t||0;const p=this.p,px=(p.x+(p.fx-p.x)*p.t)*T,py=(p.y+(p.fy-p.y)*p.t
   tile(c,ch==':'||(ch=='.'&&(x*7+y*13)%9==0)?1:0,X,Y);
   if(i!=null&&ch!='.'&&ch!=':')tile(c,ch=='t'?16+(t/200|0)%2:i,X,Y)}
  const fp=this.facing();
- this.npcs.forEach(n=>{const X=n.x*T,Y=n.y*T+((t/500|0)%2&&n.x%2?1:0);shadow(c,X,Y);c.drawImage(IM.chars,DI[n.dir||'down']*3*16,Math.max(0,CH.indexOf(n.color))*24,16,24,X,Y-8,16,24);
-  if(this.prompt&&fp===n){c.fillStyle='#fff';c.fillRect(X+5,Y-14,6,7);c.fillStyle='#000';c.fillRect(X+7,Y-13,2,3);c.fillRect(X+7,Y-9,2,1)}});
- if(this.show){shadow(c,px,py);c.drawImage(lookSprite(this.look,DI[p.dir],p.t>.5?1:p.t>0?2:0),px-1,py-9)}
+ this.npcs.forEach(n=>{const X=n.x*T,Y=n.y*T+((t/500|0)%2&&n.x%2?1:0);shadow(c,X,Y);c.drawImage(lookSprite(n.look,DI[n.dir||'down'],0),X-3,Y-15);
+  if(this.prompt&&fp===n){c.fillStyle='#fff';c.fillRect(X+5,Y-22,6,7);c.fillStyle='#000';c.fillRect(X+7,Y-21,2,3);c.fillRect(X+7,Y-17,2,1)}});
+ if(this.show){shadow(c,px,py);c.drawImage(lookSprite(this.look,DI[p.dir],p.t>.5?1:p.t>0?2:0),px-3,py-15)}
  c.restore()}};

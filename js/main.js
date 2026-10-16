@@ -36,9 +36,9 @@ function editor(edit){mode='create';let L={...(edit?S.player.look:LK)},tab='hr',
  const PAL={hr:HR,sk:SK,sh:SH,pt:PT},TN={hr:'Cabelo',sk:'Pele',sh:'Camisa',pt:'Calça'};
  const paint=()=>{ui.innerHTML=`<div class=ce><div class=ctop><button class=rd id=bk2>✕</button>Personagem</div>
  <div class=cbar><span class=cl>Cores<br>${TN[tab]}</span>${PAL[tab].map((c,i)=>`<i class="sw2 ${L[tab]==i?'on':''}" data-c=${i} style="background:${c}"></i>`).join('')}</div>
- <canvas id=pv class=pv width=18 height=26></canvas>
+ <canvas id=pv class=pv width=22 height=32></canvas>
  <div class=ctab>${Object.keys(TN).map(k=>`<button class="tb ${k==tab?'on':''}" data-t=${k}>${TN[k]}</button>`).join('')}</div>
- <div class=cgr>${[0,1,2,3,4,5].map(i=>`<canvas width=18 height=26 class="ho ${L.hs==i?'on':''}" data-h=${i}></canvas>`).join('')}</div>
+ <div class=cgr>${[0,1,2,3,4,5,6,7].map(i=>`<canvas width=22 height=32 class="ho ${L.hs==i?'on':''}" data-h=${i}></canvas>`).join('')}</div>
  <div class=cft><input id=nm maxlength=12 value="${esc(nm)}"><button id=gr>Girar ⟳</button><button id=go>Pronto ▶</button></div></div>`;
   $('pv').getContext('2d').drawImage(lookSprite(L,dr,0),0,0);ui.querySelectorAll('.ho').forEach(c=>c.getContext('2d').drawImage(lookSprite({...L,hs:+c.dataset.h},0,0),0,0));
   ui.querySelectorAll('[data-c]').forEach(e=>e.onclick=()=>{L[tab]=+e.dataset.c;paint()});ui.querySelectorAll('[data-t]').forEach(e=>e.onclick=()=>{tab=e.dataset.t;paint()});
@@ -52,7 +52,7 @@ function pickDeck(name,L){mode='deck';
 
 // ---------- jogo ----------
 function start(s,intro){S=s;nav=null;if(!s.player.look)s.player.look={...LK,sh:s.player.appearance||1};
- if(!s.story.events.kit){s.story.events.kit=1;[['SP010',2],['DM001',1],['DM024',1],['F004',1]].forEach(([k,n])=>s.collection[k]=(s.collection[k]||0)+n)}
+ if(!s.story.events.kit){s.story.events.kit=1;[['S009',2],['M021',1],['M022',1],['F002',1]].forEach(([k,n])=>s.collection[k]=(s.collection[k]||0)+n)}
  World.load(D.maps[0]);if(World.solid(s.player.x,s.player.y)){s.player.x=23;s.player.y=17}
  Save.write(s);World.set(s.player);mode='world';ui.innerHTML='';if(intro)say('Mestre Ptahor',D.maps[0].intro)}
 function say(w,l,done){dlg={w,done,l:l.map(t=>t.replaceAll('{n}',esc(S.player.name)))};mode='dialog';nextD()}
@@ -73,7 +73,7 @@ function pause(tab){mode='pause';tab=tab||'col';
  const have=Object.keys(S.collection).sort((a,b)=>card(a).type.localeCompare(card(b).type)||a.localeCompare(b)),n=Object.values(S.collection).reduce((a,b)=>a+b,0),
  TB=[['col','🃏','Coleção'],['dk','📜','Deck'],['pf','🧿','Perfil'],['op','⚙️','Opções'],['sv','💾','Sistema']];
  ui.innerHTML=`<div class=pw><div class=hdr><span class=coin>● ${S.player.coins}</span><span class=coin>🃏 ${n}</span><span class=hg>☥ ◈ ☀ ◈ ☥</span></div>
-<div class=pbody><div class=pmain id=pm></div><div class=pside><div class=pins id=pins><small>Passe o mouse/toque numa carta.</small></div><canvas id=pp width=18 height=26></canvas></div></div>
+<div class=pbody><div class=pmain id=pm></div><div class=pside><div class=pins id=pins><small>Passe o mouse/toque numa carta.</small></div><canvas id=pp width=22 height=32></canvas></div></div>
 <div class=ptabs>${TB.map(t=>`<button class="pt ${t[0]==tab?'on':''}" data-t=${t[0]}>${t[1]}<small>${t[2]}</small></button>`).join('')}<button class=pt id=px>🚪<small>Fechar</small></button></div></div>`;
  const pm=$('pm');$('pp').getContext('2d').drawImage(lookSprite(S.player.look,0,0),0,0);
  ui.querySelectorAll('.pt[data-t]').forEach(b=>b.onclick=()=>pause(b.dataset.t));$('px').onclick=closeP;
