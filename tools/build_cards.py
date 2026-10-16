@@ -304,12 +304,86 @@ trp('T007','Contrafeitiço Real','neg','resp','R','Em corrente: anula a armadilh
 trp('T008','Selo Anti-Magia','spn','spl','R','Anula a ativação de uma mágica do rival.','ward',((160,110,255),(30,15,70)),((20,8,50),(90,50,160)))
 trp('T009','Maldição do Escaravelho','curse','sum','U','Quando o rival invocar: o monstro perde 800 ATK permanentemente.','scarab',((80,200,120),(30,60,50)),((10,40,30),(50,130,90)))
 trp('T010','Poeira Cegante','dust','atk','U','Anula 1 ataque e vira o atacante para DEF.','dust',((240,200,140),(190,140,80)),((70,45,20),(200,150,80)))
-# ---------- sprites ----------
+# ---------- rebalanceamento: efeitos de apoio em batalha e condições de ativação ----------
+byid={c['id']:c for c in cards}
+RB={'M002':(E('att','tatk',v=300),'Ao atacar: ganha 300 ATK até o início do seu próximo turno.'),
+'M004':(E('bdef','tdef',v=400),'Quando for atacado: ganha 400 DEF até o início do seu próximo turno.'),
+'M009':(E('bdef','tdef',v=600),'Quando for atacado: ganha 600 DEF até o início do seu próximo turno.'),
+'M010':(E('att','tatk',v=400),'Ao atacar: ganha 400 ATK até o início do seu próximo turno.'),
+'M012':(E('att','shift'),'Ao atacar um monstro: o alvo muda para posição de DEF.'),
+'M017':(E('sum','draw',v=1,cond=dict(handMax=3)),'Ao invocar: se tiver 3 ou menos cartas na mão, compre 1 carta.'),
+'M018':(E('bdef','tdef',v=500),'Quando for atacado: ganha 500 DEF até o início do seu próximo turno.'),
+'M021':(E('att','tatk',v=600,cond=dict(lpLower=1)),'Ao atacar: se seus LP forem menores que os do rival, ganha 600 ATK até o início do seu próximo turno.'),
+'M024':(E('sum','heal',v=1000,cond=dict(a='Água')),'Ao invocar: se controlar outro monstro Água, recupere 1000 LP.'),
+'M025':(E('sum','revive',cond=dict(gyN=3)),'Ao invocar: se tiver 3+ cartas no cemitério, reviva um monstro de nível 4 ou menos.'),
+'M027':(E('bdef','neg',once=1),'Uma vez por turno: anula 1 ataque contra este monstro.'),
+'M028':(E('die','revive',cond=dict(gyN=2)),'Ao ser destruído: se tiver 2+ cartas no cemitério, reviva um monstro de nível 4 ou menos.'),
+'M030':(E('sum','pos',cond=dict(opp2=1)),'Ao invocar: se o rival controla 2+ monstros, todos mudam para DEF.'),
+'M031':(E('sum','kill',cond=dict(moreMon=1)),'Ao invocar: se o rival controla mais monstros que você, destrua o mais forte dele.'),
+'M033':(E('sum','draw',v=2,cond=dict(handMax=2)),'Ao invocar: se tiver 2 ou menos cartas na mão, compre 2 cartas.'),
+'M035':(E('sum','kill',cond=dict(r='Dragão')),'Ao invocar: se controlar outro Dragão, destrua o monstro mais forte do rival.'),
+'F001':(E('sum','burn',v=1000,cond=dict(lpLower=1)),'Fusão: Dragão Solar + Dragão Eclipse. Ao invocar: se seus LP forem menores que os do rival, 1000 de dano.'),
+'F003':(E('bdef','neg',once=1),'Fusão: 2 monstros Golem. Uma vez por turno: anula 1 ataque contra este monstro.'),
+'F005':(E('sum','kill',cond=dict(moreMon=1)),'Fusão: 3 monstros Fogo. Ao invocar: se o rival controla mais monstros, destrua o mais forte dele.')}
+for i,(ef,tx) in RB.items():byid[i]['ef']=ef;byid[i]['text']=tx
+RS={'S002':(dict(a='Fogo'),'Se controlar um monstro Fogo: 800 de dano ao rival.'),'S003':(dict(handMax=3),'Se tiver 3 ou menos cartas na mão: compre 2 cartas.'),
+'S004':(dict(a='Terra'),'Se controlar um monstro Terra: destrua 1 monstro do rival à sua escolha.'),'S005':(dict(gyN=3),'Se tiver 3+ cartas no cemitério: reviva 1 monstro.'),
+'S006':(dict(lpBelow=2000),'Se seus LP forem 2000 ou menos: destrua todos os monstros do campo.'),'S007':(dict(a='Vento'),'Se controlar um monstro Vento: destrua todas as mágicas/armadilhas do campo.'),
+'S012':(dict(r='Morto-vivo'),'Se controlar um Morto-vivo: destrua todos os monstros com ATK 2200 ou mais.'),'S015':(dict(a='Vento'),'Se controlar um monstro Vento: devolva 1 monstro do rival à mão dele.')}
+for i,(cd,tx) in RS.items():byid[i]['effect']['cond']=cd;byid[i]['text']=tx
+RT={'T001':(dict(lp=1500),'Pague 1500 LP. Quando o rival atacar: destrua todos os monstros dele em ATK.'),'T005':(dict(cond=dict(noMon=1)),'Se você não controla monstros: quando o rival invocar, destrua todos os monstros.'),
+'T006':(dict(lp=800),'Pague 800 LP. Quando o rival invocar: destrua o monstro invocado.')}
+for i,(u,tx) in RT.items():byid[i]['effect'].update(u);byid[i]['text']=tx
+spl('S021','Bênção de Força','normal',dict(t='tb',a=800),'C','Um monstro seu ganha 800 ATK até o início do seu próximo turno.','sun',((255,220,100),(255,120,40)),((80,30,10),(230,140,40)))
+spl('S022','Muralha de Areia','normal',dict(t='twall',d=600),'C','Seus monstros ganham 600 DEF até o início do seu próximo turno.','shield',((230,200,120),(120,80,40)),((70,45,20),(200,150,80)))
+spl('S023','Mudança de Postura','normal',dict(t='toggle'),'U','Mude a posição de batalha de 1 monstro (seu ou do rival).','cyclone',((200,160,255),(90,50,160)),((25,10,60),(110,70,180)))
+spl('S024','Grito de Guerra','normal',dict(t='tteam',a=400),'U','Seus monstros ganham 400 ATK até o início do seu próximo turno.','sword',((255,90,80),(255,210,120)),((70,10,10),(200,60,40)))
+trp('T011','Muralha de Escaravelhos','wall','atk','U','Quando o rival atacar um monstro seu: ele ganha 1000 DEF.','shield',((230,200,130),(40,140,120)),((10,50,50),(60,150,130)))
+trp('T012','Contra-ataque Solar','counter','atk','U','Quando o rival atacar um monstro seu: ele ganha 800 ATK.','sun',((255,210,90),(220,90,40)),((70,25,10),(230,130,40)))
+trp('T013','Escudo de Hórus','shield','atk','R','Descarte 1 carta. Anula 1 ataque do rival.','ward',((120,200,255),(30,60,120)),((10,25,70),(60,120,200)))
+byid={c['id']:c for c in cards}
+# ---------- sprites (desenhados em 3x, deformados, iluminados por volume e reduzidos para 96x96) ----------
+import numpy as np
+K=3;S=64*K;OUT=96
+def chaikin(p,r=.2):
+    q=[]
+    for i in range(len(p)):
+        a,b=p[i],p[(i+1)%len(p)];q+=[(a[0]*(1-r)+b[0]*r,a[1]*(1-r)+b[1]*r),(a[0]*r+b[0]*(1-r),a[1]*r+b[1]*(1-r))]
+    return q
+class Px:
+    def __init__(s,im):s.d=ImageDraw.Draw(im)
+    def polygon(s,pts,fill=None,outline=None):s.d.polygon(chaikin([(x*K,y*K) for x,y in pts]) if len(pts)>2 else [(x*K,y*K) for x,y in pts],fill=fill,outline=outline)
+    def ellipse(s,b,fill=None,outline=None,width=1):s.d.ellipse([v*K for v in b],fill=fill,outline=outline,width=width*K)
+    def rectangle(s,b,fill=None,outline=None,width=1):
+        x0,y0,x1,y1=[v*K for v in b];x1+=K-1;y1+=K-1;r=max(0,min(2*K,(x1-x0)/2-1,(y1-y0)/2-1))
+        s.d.rounded_rectangle([x0,y0,x1,y1],radius=r,fill=fill,outline=outline,width=width*K)
+    def line(s,pts,fill=None,width=1):s.d.line([(x*K,y*K) for x,y in pts],fill=fill,width=max(1,width*K))
+    def arc(s,b,a0,a1,fill=None,width=1):s.d.arc([v*K for v in b],a0,a1,fill=fill,width=width*K)
+    def point(s,xy,fill=None):s.d.rectangle([xy[0]*K,xy[1]*K,xy[0]*K+K-1,xy[1]*K+K-1],fill=fill)
+def warp(im,seed,amp=3.5):
+    r=np.random.RandomState(seed%99991);a=np.array(im);Hh,W=a.shape[:2]
+    def fld():return (np.array(Image.fromarray((r.rand(7,7)*255).astype('uint8')).resize((W,Hh),Image.BICUBIC)).astype(float)/255-.5)*2*amp
+    dx,dy=fld(),fld();yy,xx=np.mgrid[0:Hh,0:W]
+    return Image.fromarray(a[np.clip((yy+dy).round().astype(int),0,Hh-1),np.clip((xx+dx).round().astype(int),0,W-1)])
+def light(im,seed):
+    a=np.array(im).astype(float);rgb=a[...,:3];al=a[...,3]
+    sh=lambda dx,dy:np.roll(np.roll(a,dy,0),dx,1)
+    tl,br=sh(2,2),sh(-2,-2)
+    dtl=(np.abs(rgb-tl[...,:3]).sum(-1)>30)&(tl[...,3]>0);dbr=(np.abs(rgb-br[...,:3]).sum(-1)>30)&(br[...,3]>0)
+    rgb=np.where(dtl[...,None],rgb*1.2+10,np.where(dbr[...,None],rgb*.7,rgb))
+    h=np.array(Image.fromarray(al.astype('uint8')).filter(ImageFilter.GaussianBlur(7))).astype(float)/255
+    gy,gx=np.gradient(h);sc=26;dot=(.5*gx*sc+.55*gy*sc+.67)/np.sqrt((gx*sc)**2+(gy*sc)**2+1)
+    shade=.55+.75*np.clip(dot,0,1.2)+.35*np.clip(dot-.95,0,1)
+    t=Image.new('L',(S,S),128);td=ImageDraw.Draw(t);r=random.Random(seed)
+    for _ in range(1100):
+        x,y=r.randint(0,S),r.randint(0,S);l=r.randint(5,13);an=r.uniform(.3,1.2);td.line([(x,y),(x+l*math.cos(an),y+l*math.sin(an))],fill=r.randint(95,160),width=1)
+    tex=np.array(t.filter(ImageFilter.GaussianBlur(.8))).astype(float)/128
+    rgb=np.clip(rgb*shade[...,None]*(.86+.14*tex[...,None]**1.5),0,255)
+    return Image.fromarray(np.dstack([rgb,al]).astype('uint8'),'RGBA')
 def compose(c):
-    s=c['_sp'];seed=sum(map(ord,c['id']))*31
+    s=c['_sp'];seed=sum(map(ord,c['id']))*31;sub=Image.new('RGBA',(S,S));d=Px(sub)
     if s['k']=='field':
-        im=bg(s['attr'],seed);FS[s['attr']](ImageDraw.Draw(im));return shade(im)
-    sub=Image.new('RGBA',(64,64));d=ImageDraw.Draw(sub)
+        FS[s['attr']](d);base=bg(s['attr'],seed).resize((OUT,OUT),Image.BICUBIC);sub=light(warp(sub,seed,2.5),seed).resize((OUT,OUT),Image.LANCZOS);base.alpha_composite(sub);return base
     if s['k']=='mon':
         base=bg(c['attr'],seed);M,A=H(s['pal'][0]),H(s['pal'][1]);o=dict(s['o'])
         if s['sp']=='beast' and o.get('k')=='scorp':SP['insect'](d,M,A,dict(k='scorp'))
@@ -317,10 +391,11 @@ def compose(c):
         gc=AC[c['attr']]
     else:
         base=grad(*s['bg']);A,C=s['pal'];I[s['ic']](d,A,C);gc=A
-    sub=shade(sub);out=Image.alpha_composite(base,glow(sub,gc));out.alpha_composite(outline(sub));out.alpha_composite(sub)
+    base=base.resize((OUT,OUT),Image.BICUBIC);sub=light(warp(sub,seed),seed).resize((OUT,OUT),Image.LANCZOS)
+    out=Image.alpha_composite(base,glow(sub,gc));out.alpha_composite(outline(sub));out.alpha_composite(sub)
     if c['rarity'] in ('SR','UR'):
         r=random.Random(seed);dd=ImageDraw.Draw(out)
-        for _ in range(7):x,y=r.randint(3,60),r.randint(3,60);dd.line([(x-2,y),(x+2,y)],fill=(255,255,255,230));dd.line([(x,y-2),(x,y+2)],fill=(255,255,255,230))
+        for _ in range(7):x,y=r.randint(4,91),r.randint(4,91);dd.line([(x-3,y),(x+3,y)],fill=(255,255,255,230));dd.line([(x,y-3),(x,y+3)],fill=(255,255,255,230))
     return out
 for c in cards:compose(c).save(f"assets/cards/{c['id']}.png",optimize=True)
 out=[{k:v for k,v in c.items() if not k.startswith('_') and v is not None} for c in cards]
@@ -337,6 +412,13 @@ ids={c['id'] for c in cards}
 decks=[dict(id='feiticeiro',name='Deck do Feiticeiro',desc='Controle: mágicas, armadilhas e magos. Depende de combinações.',cards=fit({'M006':3,'M008':3,'M005':3,'M007':2,'M026':1,'M033':1,'M025':1,'M016':2,'M017':2,'S001':3,'S002':3,'S003':3,'S004':2,'S005':2,'S008':2,'T001':2,'T006':2,'T007':1,'S019':1},['M002','M004','M012'])),
 dict(id='dragao',name='Deck do Dragão',desc='Força: dragões, feras e equipamentos. Mãos ruins travam.',cards=fit({'M020':3,'M024':1,'M029':1,'M014':2,'M009':3,'M010':3,'M012':3,'M021':1,'M002':3,'M004':2,'M001':2,'S001':3,'S002':2,'S016':2,'S017':2,'S018':1,'S010':1,'T002':2,'T004':2,'T003':1},['M006','M011'])),
 dict(id='guardiao',name='Deck do Guardião das Ruínas',desc='Versatilidade: golems, guerreiros e campos.',cards=fit({'M018':3,'M019':2,'M027':1,'M009':3,'M023':2,'M013':3,'M015':3,'M022':1,'M003':3,'M011':2,'S001':3,'S017':3,'S014':1,'S003':2,'S012':1,'S020':1,'FD04':1,'T005':1,'T009':2,'T010':2},['M001','M002']))]
+def swap(d,o,n,k=1):
+    c=d['cards'];c[o]-=k
+    if c[o]<=0:del c[o]
+    c[n]=c.get(n,0)+k
+swap(decks[0],'S002','S021',2);swap(decks[0],'S004','S023');swap(decks[0],'T001','T011')
+swap(decks[1],'S017','S021');swap(decks[1],'T004','T013')
+swap(decks[2],'S003','S022');swap(decks[2],'T009','T011');swap(decks[2],'T010','T013')
 for d in decks:
     assert sum(d['cards'].values())==40 and all(k in ids and v<=3 for k,v in d['cards'].items()),d['id']
 json.dump(decks,open('data/decks.json','w'),ensure_ascii=False,separators=(',',':'))

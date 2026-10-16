@@ -43,3 +43,6 @@ body:not([data-mode=world]):not([data-mode=dialog]) #pad{display:none!important}
 .pt{min-width:0;width:100%;font-size:3.4cqw;background:#c98a3a;color:#fff;border-color:#f5d27a;padding:.4cqw 0;line-height:1}.pt small{display:block;font-size:1.3cqw}.pt.on{background:#f5d27a;color:#3a2a14}
 .ct{text-align:center;font-size:1.7cqw}.cw{position:relative;width:11cqw;height:16cqw;margin:0 auto .3cqw}.ct button{min-width:0;padding:0 1.2cqw;font-size:2cqw}
 .dkh{flex-basis:100%;display:flex;gap:2cqw;align-items:center}
+
+#ui,#fx{--u:min(1cqw,1.5cqh)}
+body[data-mode=battle] #game{aspect-ratio:16/9;width:min(100vw,calc(100vh*1.7778));width:min(100vw,calc(100dvh*1.7778))}

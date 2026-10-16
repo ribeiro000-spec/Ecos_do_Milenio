@@ -10,8 +10,8 @@ extra(p){return Ai.pool(p).filter(c=>c.fusion).map(c=>c.id)},
 next(B){const me=B.o,you=B.p,pr=B.prof,mine=me.f.filter(Boolean),theirs=you.f.filter(Boolean),mx=a=>Math.max(0,...a.map(m=>m.atk)),
  free=me.f.includes(null),stF=me.st.includes(null),gy=me.gy.some(x=>{const c=card(x);return c.type=='monster'&&!c.fusion&&!RL.includes(x)}),
  cnt=(a,s)=>s.f.filter(m=>m&&card(m.id).attr==a).length;
- for(let i=0;i<me.hand.length;i++){const c=card(me.hand[i]);if(c.type!='spell')continue;const e=c.effect,F=c.field;
-  const ok={heal:me.lp<=2500,healA:cnt(e.a,me)>0&&me.lp<3500,burn:true,burnA:cnt(e.a,me)>0,draw:me.deck.length>8,destroy:theirs.length>0&&mx(theirs)>=mx(mine),revive:gy&&free,
+ for(let i=0;i<me.hand.length;i++){const c=card(me.hand[i]);if(c.type!='spell')continue;const e=c.effect,F=c.field;if(!cnd(me,you,e.cond,null,-1))continue;
+  const ok={heal:me.lp<=2500,healA:cnt(e.a,me)>0&&me.lp<3500,burn:true,burnA:cnt(e.a,me)>0,draw:me.deck.length>8,destroy:theirs.length>0&&mx(theirs)>=mx(mine),revive:gy&&free,tb:B.n>1&&mine.some(m=>m.pos=='a'&&!m.used),tteam:B.n>1&&mine.some(m=>m.pos=='a'&&!m.used),twall:theirs.length>0&&mine.length>0,toggle:theirs.some(m=>m.pos=='a'&&m.def<mx(mine)),
    bhole:theirs.length>1&&mine.length<theirs.length,storm:you.st.some(Boolean),def:theirs.length>0&&mine.length>0,bounce:theirs.length>0&&mx(theirs)>mx(mine),fuse:fuseOpts(me).length>0,
    purge:theirs.filter(m=>m.atk>=e.v).length>mine.filter(m=>m.atk>=e.v).length,pact:me.lp>2500&&me.deck.length>8,tutor:me.deck.some(id=>card(id).race==e.r),
    equip:mine.length>0&&stF,cont:stF&&!me.st.some(t=>t&&t.id==c.id),field:!!F&&B.fld!=c.id&&cnt(F.a,me)>cnt(F.a,you)}[e.t];
